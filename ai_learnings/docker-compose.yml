@@ -1,0 +1,45 @@
+version: '3.8'
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_HOST=0.0.0.0
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+      - NODE_ENV=production
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+    depends_on:
+      - ollama
+    networks:
+      - ai-network
+
+  ollama:
+    build: 
+      context: .
+      dockerfile: Dockerfile.ollama
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_ALLOW_INSECURE=true
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+
+# volumes are in the project directory for repeatability
