@@ -1,0 +1,88 @@
+{
+  "name": "Basic Workflow - Ollama",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "10b86941-cffb-4ebe-866a-d8461f51161e",
+      "name": "When chat message received",
+      "webhookId": "a72f68c6-b7f2-4d9e-a81e-ed43300cae64"
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "723fd004-7411-46fa-bba5-88026b088447",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "tinyllama:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        296,
+        224
+      ],
+      "id": "17e482ae-c6eb-45e8-a3f5-e90503d500cc",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "i1qc1e9hrW8wO4Go",
+          "name": "Ollama Account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "735ec354-29b3-4f60-9f83-ae18d0ac550e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca04525325738874808c30d569386106acbb195322b415ae64e90801bf53dc92"
+  },
+  "id": "YAqmieDMBNTtw4Wo",
+  "tags": []
+}

@@ -1,0 +1,17 @@
+# Use the official Ollama image as the base
+FROM ollama/ollama:latest
+
+# Copy the custom entrypoint script into the container
+COPY ./ollamaEntryPoint.sh /entrypoint.sh
+
+# Ensure the script is executable (though we already did this on the host)
+RUN chmod +x /entrypoint.sh
+
+# Expose the default Ollama port
+EXPOSE 11434
+
+# Set the entrypoint to our script
+ENTRYPOINT ["/entrypoint.sh"]
+
+# The default command for the ollama/ollama image is "ollama serve", which is called by our script
+CMD ["ollama", "serve"]

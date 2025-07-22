@@ -1,0 +1,28 @@
+meta {
+  name: OllamaChatApi
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:11434/api/chat
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "model": "tinyllama", //insert any models from Ollama that are on your local machine
+    "messages": [
+      {
+        "role": "system", //"system" is a prompt to define how the model should act.
+        "content": "You are a travel advisor and would recommend a day to day itenary with best recommendation and travel plans" //system prompt should be written here
+      },
+      {
+        "role": "user", //"user" is a prompt provided by the user.
+        "content": "Please provide a list of best places to visit in Qubec. I am planning a 3 days visit and would prefer to use Public transport" //user prompt should be written here
+      }
+    ],
+    "stream": false //returns as a full message rather than a streamed response
+  }
+}
