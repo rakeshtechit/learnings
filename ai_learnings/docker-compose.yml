@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  # LLM launcher to install model
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollamadata:/root/.ollama
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh # Mount the entrypoint script
+    entrypoint: ["/bin/sh", "ollama-entrypoint.sh"] # Use the custom entrypoint script
+    restart: unless-stopped # Add a restart policy for resilience
+  # Design an Ai network engine
+  n8n-postgress-db:
+    image: postgres:latest
+    container_name: n8n-postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - WEBHOOK_TUNNEL_URL=http://localhost:5678
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=admin
+      - DB_POSTGRESDB_PASSWORD=admin
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - ollama 
+      - n8n-postgress-db
+    restart: unless-stopped # Add a restart policy for resilience
+#  # Kubernetes service
+  # k3s-server:
+  #   image: rancher/k3s:latest # You can pin to a specific version like v1.28.5-k3s1
+  #   container_name: k3s-server
+  #   privileged: true # Required for K3s to run inside Docker
+  #   hostname: k3s-server
+  #   ports:
+  #     - "6443:6443" # Kubernetes API server port
+  #     # You can add more port mappings here if your applications need to expose specific ports directly
+  #     # For example: - "80:80" or - "443:443" if you plan to use NodePort services or Ingress with hostNetwork
+  #   # environment:
+  #     # Optional: K3s server arguments can go here
+  #     # - K3S_TOKEN=YOUR_SECRET_TOKEN # If you want to set a fixed token
+  #     # - K3S_KUBECONFIG_MODE="644" # Adjust permissions if needed
+  #   volumes:
+  #     # Optional: Persist K3s data (e.g., etcd, Kubeconfig, logs)
+  #     # This helps your cluster state survive container restarts.
+  #     - k3s_data:/var/lib/rancher/k3s
+  #   command: server
+volumes:
+  ollamadata:
+  postgres_data:
+  n8n_data:
+#  k3s_data:
+# networks:
+#   n8n-network:
+#     driver: bridge
