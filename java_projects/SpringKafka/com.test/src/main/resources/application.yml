@@ -1,0 +1,11 @@
+server:
+    port: 8081
+spring:
+    application:
+        name: com.test
+    kafka:
+        bootstrap-servers: localhost:9092
+        producer:
+            value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+        consumer:
+            value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer

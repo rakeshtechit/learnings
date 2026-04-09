@@ -1,87 +1,150 @@
-version: '3.8'
+# Docker compose file
 services:
-  # N8N Workflow Automation Tool 
-  ace:
-    image: ibmcom/ace:latest
-    container_name: aceserver
+  # # ACE Server from IBM
+  # ace:
+  #   image: ibmcom/ace:latest
+  #   container_name: aceserver
+  #   ports:
+  #     - "7600:7600"
+  #     - "7800:7800"
+  #     - "7843:7843"
+  #   environment:
+  #     - LICENSE=accept
+  #     - ACE_SERVER_NAME=ACESERVER
+  #   networks:
+  #     - dev-network
+  
+  # # N8N Workflow Automation Tool 
+  # n8n:
+  #   image: n8nio/n8n:latest
+  #   container_name: n8n
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5678:5678"
+  #   environment:
+  #     N8N_BASIC_AUTH_ACTIVE: true
+  #     N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+  #     N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+  #     N8N_HOST: 0.0.0.0
+  #     WEBHOOK_URL: http://localhost:5678/
+  #     GENERIC_TIMEZONE: UTC
+  #     NODE_ENV: production
+  #     N8N_BLOCK_ENV_ACCESS_IN_NODE: false
+  #     OLLAMA_HOST: http://ollama:11434
+  #   volumes:
+  #     - ./.volume/n8n-data:/home/node/.n8n
+  #   depends_on:
+  #     - ollama
+  #   networks:
+  #     - dev-network
+  # # Ollama AI Model Server
+  # ollama:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile.ollama
+  #   container_name: ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ./.volume/ollama-data:/root/.ollama
+  #   environment:
+  #     OLLAMA_ALLOW_INSECURE: true
+  #   networks:
+  #     - dev-network
+  
+  # # Solace PubSub+ Standard Edition
+  # solace:
+  #   image: solace/solace-pubsub-standard
+  #   container_name: solace
+  #   ports:
+  #     - "8080:8080"
+  #     - "55555:55555"
+  #     - "8008:8008"
+  #     - "1883:1883"
+  #     - "8000:8000"
+  #     - "5672:5672"
+  #     - "9000:9000"
+  #     - "2222:2222"
+  #   shm_size: ${SOLACE_SHM_SIZE:-1g}
+  #   environment:
+  #     username_admin_globalaccesslevel: ${SOLACE_USERNAME_ADMIN_GLOBALACCESSLEVEL}
+  #     username_admin_password: ${SOLACE_PASSWORD}
+  #   networks:
+  #     - dev-network
+  
+  # Kafka 
+  kafka:
+    image: apache/kafka:latest
+    hostname: broker
+    container_name: kafka
     ports:
-      - "7600:7600"
-      - "7800:7800"
-      - "7843:7843"
+      - 9092:9092
     environment:
-      - LICENSE=accept
-      - ACE_SERVER_NAME=ACESERVER
-    networks:
-      - dev-network
-  n8n:
-    image: n8nio/n8n:latest
-    container_name: n8n
-    restart: unless-stopped
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
-      - N8N_HOST=0.0.0.0
-      - WEBHOOK_URL=http://localhost:5678/
-      - GENERIC_TIMEZONE=UTC
-      - NODE_ENV=production
-      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
-      - OLLAMA_HOST=http://ollama:11434
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     volumes:
-      - ./n8n-data:/home/node/.n8n
-    depends_on:
-      - ollama
+      - ./.volume/kafka-data:/var/lib/kafka/data
     networks:
       - dev-network
-  # Ollama AI Model Server
-  ollama:
-    build: 
-      context: .
-      dockerfile: Dockerfile.ollama
-    container_name: ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ./ollama-data:/root/.ollama
-    environment:
-      - OLLAMA_ALLOW_INSECURE=true
-    networks:
-      - dev-network
-  # Solace PubSub+ Standard Edition
-  solace:
-    image: solace/solace-pubsub-standard
-    container_name: solace
+  # Kafka
+  kafka-ui:
+    image:  provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
     ports:
       - "8080:8080"
-      - "55555:55555"
-      - "8008:8008"
-      - "1883:1883"
-      - "8000:8000"
-      - "5672:5672"
-      - "9000:9000"
-      - "2222:2222"
-    shm_size: ${SOLACE_SHM_SIZE:-1g}
+    depends_on:
+      - kafka
     environment:
-      - username_admin_globalaccesslevel=${SOLACE_USERNAME_ADMIN_GLOBALACCESSLEVEL}
-      - username_admin_password=${SOLACE_PASSWORD}
+      KAFKA_CLUSTERS_0_NAME: local-kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092 
     networks:
-      - dev-network
-  postgres:
-    image: postgres:latest
-    container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME:-default'}
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./postgres_data:/var/lib/postgresql
+      - dev-network     
+  # Postgres network
+#  postgres:
+#    image: postgres:latest
+#    container_name: postgres_db
+#    restart: always
+#    environment:
+#      POSTGRES_USER: ${DB_USER}
+#      POSTGRES_PASSWORD: ${DB_USER}
+#      POSTGRES_DB: ${DB_NAME:-default'}
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - ./.volume/postgres_data:/var/lib/postgresql
+#    networks:
+#      - dev-network
+#  # Postgress Vector database
+#  pg-vector-db:
+#    image: pgvector/pgvector:pg17 # PostgreSQL with pgvector support
+#    container_name: pgvector-db
+#    environment:
+#      POSTGRES_USER: ${DB_USER}
+#      POSTGRES_PASSWORD: ${DB_USER}
+#      POSTGRES_DB: ${DB_NAME:-default'}
+#    ports:
+#      - "5433:5432"
+#    volumes:
+#      - ./.volume/pgdata:/var/lib/postgresql/data
+#      - ./pgvector-schema.sql:/docker-entrypoint-initdb.d/schema.sql
+#    networks:
+#      - dev-network
 
+# Kubernetes container
 networks:
   dev-network:
     driver: bridge

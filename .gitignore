@@ -4,6 +4,7 @@
 
 # LangGraph
 .langgraph_api/
+.vscode/
+.DS_Store
 .env
-n8n-data/
-ollama-data/
+.volume/

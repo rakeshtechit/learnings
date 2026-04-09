@@ -13,6 +13,8 @@ echo "Ollama server is active."
 
 echo "Pulling the tinyllama model..."
 ollama pull tinyllama
+echo "Pulling the llama model..."
+ollama pull llama3.2
 
 echo "Model pull complete. Server is running and ready to serve requests."
 

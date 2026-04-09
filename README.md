@@ -1,2 +1,2 @@
 # learnings
-A group of multiple sub projects representing difference variations
+Small project to learn and explore in free time
